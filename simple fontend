@@ -1,0 +1,78 @@
+// Simple Frontend using React
+
+import React, { useState, useEffect } from 'react';
+import './App.css'; // Create this file for styling
+
+const App = () => {
+  const [menu, setMenu] = useState([]);
+  const [order, setOrder] = useState({ name: '', item: '', quantity: 1 });
+  const [message, setMessage] = useState('');
+
+  // Fetch menu items from backend
+  useEffect(() => {
+    fetch('http://localhost:5000/menu')
+      .then((res) => res.json())
+      .then((data) => setMenu(data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  // Handle order form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    fetch('http://localhost:5000/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    })
+      .then((res) => res.json())
+      .then((data) => setMessage(data.message))
+      .catch((err) => console.error(err));
+  };
+
+  return (
+    <div className="App">
+      <h1>Food Delivery App</h1>
+      <h2>Menu</h2>
+      <ul>
+        {menu.map((item) => (
+          <li key={item.id}>{item.name} - ${item.price}</li>
+        ))}
+      </ul>
+
+      <h2>Order Now</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Your Name"
+          value={order.name}
+          onChange={(e) => setOrder({ ...order, name: e.target.value })}
+          required
+        />
+        <select
+          value={order.item}
+          onChange={(e) => setOrder({ ...order, item: e.target.value })}
+          required
+        >
+          <option value="">Select an Item</option>
+          {menu.map((item) => (
+            <option key={item.id} value={item.name}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+        <input
+          type="number"
+          min="1"
+          value={order.quantity}
+          onChange={(e) => setOrder({ ...order, quantity: e.target.value })}
+        />
+        <button type="submit">Place Order</button>
+      </form>
+
+      {message && <p>{message}</p>}
+    </div>
+  );
+};
+
+export default App;
